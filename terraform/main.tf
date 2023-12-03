@@ -26,6 +26,29 @@ resource "aws_s3_bucket" "bucket" {
   }
 }
 
+resource "aws_s3_bucket_policy" "bucket_policy" {
+  bucket = aws_s3_bucket.bucket.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "PublicReadGetObject"
+        Effect    = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${aws_cloudfront_origin_access_identity.oai.id}"
+        }
+        Action   = ["s3:GetObject"]
+        Resource = ["arn:aws:s3:::${aws_s3_bucket.bucket.id}/*"]
+      },
+    ]
+  })
+}
+
+resource "aws_cloudfront_origin_access_identity" "oai" {
+  comment = "OAI para o site estático"
+}
+
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
     domain_name = aws_s3_bucket.bucket.bucket_regional_domain_name
