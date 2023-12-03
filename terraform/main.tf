@@ -72,6 +72,8 @@ data "aws_iam_policy_document" "react_app_s3_policy" {
 resource "aws_s3_bucket_policy" "react_app_bucket_policy" {
   bucket = aws_s3_bucket.bucket.id
   policy = data.aws_iam_policy_document.react_app_s3_policy.json
+
+    depends_on = [aws_iam_policy_document.react_app_s3_policy]
 }
 
 resource "aws_cloudfront_origin_access_identity" "oai" {
