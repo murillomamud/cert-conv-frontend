@@ -54,26 +54,24 @@ resource "aws_s3_bucket_object" "dist" {
   content_type = lookup(local.mime_type_mappings, concat(regexall("\\.([^\\.]*)$", each.value), [[""]])[0][0], "application/octet-stream")
 }
 
-###########
-# Access control policy for the bucket
-###########
-data "aws_iam_policy_document" "react_app_s3_policy" {
-  statement {
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.bucket.arn}/*"]
 
-    principals {
-      type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.oai.iam_arn]
-    }
-  }
-}
 
 resource "aws_s3_bucket_policy" "react_app_bucket_policy" {
   bucket = aws_s3_bucket.bucket.id
-  policy = data.aws_iam_policy_document.react_app_s3_policy.json
-
-    depends_on = [aws_iam_policy_document.react_app_s3_policy]
+  policy = <<EOF
+{ 
+    "Version": "2012-10-17", 
+    "Statement": [ 
+        { 
+        "Sid": "PublicReadGetObject", 
+        "Effect": "Allow", 
+        "Principal": "*", 
+        "Action": "s3:GetObject", 
+        "Resource": "arn:aws:s3:::${aws_s3_bucket.bucket.id}/*" 
+        } 
+    ] 
+    }
+EOF
 }
 
 resource "aws_cloudfront_origin_access_identity" "oai" {
