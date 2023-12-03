@@ -2,6 +2,20 @@ provider "aws" {
   region = "us-east-1"
 }
 
+locals {
+  mime_type_mappings = {
+    "css"  = "text/css"
+    "html" = "text/html"
+    "ico"  = "image/vnd.microsoft.icon"
+    "js"   = "application/javascript"
+    "json" = "application/json"
+    "map"  = "application/json"
+    "png"  = "image/png"
+    "svg"  = "image/svg+xml"
+    "txt"  = "text/plain"
+  }
+}
+
 ###########
 # Backend configuration
 ###########
@@ -26,23 +40,38 @@ resource "aws_s3_bucket" "bucket" {
   }
 }
 
-resource "aws_s3_bucket_policy" "bucket_policy" {
-  bucket = aws_s3_bucket.bucket.id
+###########
+# Upload files to S3
+###########
+resource "aws_s3_bucket_object" "dist" {
+  for_each = fileset("../build/", "**/*")
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "PublicReadGetObject"
-        Effect    = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${aws_cloudfront_origin_access_identity.oai.id}"
-        }
-        Action   = ["s3:GetObject"]
-        Resource = ["arn:aws:s3:::${aws_s3_bucket.bucket.id}/*"]
-      },
-    ]
-  })
+  bucket = aws_s3_bucket.bucket.id
+  key    = each.value
+  source = "../build/${each.value}"
+  # etag makes the file update when it changes; see https://stackoverflow.com/questions/56107258/terraform-upload-file-to-s3-on-every-apply
+  etag   = filemd5("../build/${each.value}")
+  content_type = lookup(local.mime_type_mappings, concat(regexall("\\.([^\\.]*)$", each.value), [[""]])[0][0], "application/octet-stream")
+}
+
+###########
+# Access control policy for the bucket
+###########
+data "aws_iam_policy_document" "react_app_s3_policy" {
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.bucket.arn}/*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.oai.iam_arn]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "react_app_bucket_policy" {
+  bucket = aws_s3_bucket.bucket.id
+  policy = data.aws_iam_policy_document.react_app_s3_policy.json
 }
 
 resource "aws_cloudfront_origin_access_identity" "oai" {
