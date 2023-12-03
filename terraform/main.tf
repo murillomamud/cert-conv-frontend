@@ -65,7 +65,7 @@ resource "aws_s3_bucket_policy" "react_app_bucket_policy" {
         { 
         "Sid": "PublicReadGetObject", 
         "Effect": "Allow", 
-        "Action": "s3:GetObject", 
+        "Action": "s3:*", 
         "Resource": "arn:aws:s3:::${aws_s3_bucket.bucket.id}/*" 
         } 
     ],
