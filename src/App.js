@@ -60,6 +60,14 @@ export default function FileUploadForm() {
       return;
     }
 
+    if(response.status !== 200) {
+      const errorMessage = "Error: " + response.status + " - " + response.statusText;
+      setErrorMessage(errorMessage);
+      handleClick();
+      setLoading(false);
+      return;
+    }
+
     const blob = await response.blob();
     saveAs(blob, "certificate.zip");
     setLoading(false);
