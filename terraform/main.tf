@@ -70,9 +70,9 @@ resource "aws_s3_bucket_policy" "react_app_bucket_policy" {
         } 
     ],
     "Principal": {
-        type = "AWS"
-        identifiers = [
-            aws_cloudfront_origin_access_identity.oai.iam_arn
+        "type" = "AWS"
+        "identifiers" = [
+            "aws_cloudfront_origin_access_identity.oai.iam_arn"
         ]
     }
     }
