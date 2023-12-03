@@ -1,0 +1,68 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - master
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build
+      run: npm run build
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+  terraform:
+    runs-on: [ ubuntu-latest ]
+    container:
+      image: hashicorp/terraform:latest
+    needs: [build-push-docker-image]
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Verify Terraform version
+        working-directory: ./terraform
+        run: terraform --version
+
+      - name: Terraform init
+        working-directory: ./terraform
+        run: |
+          terraform init -backend-config "bucket=terraform-state-murillo" 
+
+      - name: Terraform validation
+        working-directory: ./terraform
+        run: terraform validate
+
+      - name: Terraform plan
+        working-directory: ./terraform
+        run: terraform plan -out=tfplan
+
+
+      - name: Terraform apply
+        working-directory: ./terraform
+        run: |
+          terraform apply tfplan      

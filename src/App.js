@@ -1,25 +1,84 @@
-import logo from './logo.svg';
-import './App.css';
+import * as React from "react";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Stack from "@mui/material/Stack";
+import { useDropzone } from "react-dropzone";
+import Box from "@mui/material/Box";
+import { saveAs } from 'file-saver';
+import LinearProgress from '@mui/material/LinearProgress';
 
-function App() {
+
+export default function FileUploadForm() {
+  const [file, setFile] = React.useState(null);
+  const [password, setPassword] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+
+
+  const onDrop = React.useCallback((acceptedFiles) => {
+    setFile(acceptedFiles[0]);
+  }, []);
+
+  const { getRootProps, getInputProps } = useDropzone({ onDrop, maxFiles: 1 });
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+  
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('password', password);
+  
+    const response = await fetch('http://cert-conv-backend-lob-526233694.us-east-1.elb.amazonaws.com/convert', {
+      method: 'POST',
+      body: formData,
+    });
+  
+    const blob = await response.blob();
+    saveAs(blob, 'certificate.zip');
+    setLoading(false);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      minHeight="100vh"
+    >
+      <form onSubmit={handleSubmit}>
+        <Stack spacing={2} direction="column" sx={{ width: "300px" }}>
+          <div
+            {...getRootProps()}
+            style={{
+              border: "1px solid #000",
+              padding: "10px",
+              cursor: "pointer",
+              backgroundColor: "#f0f0f0",
+            }}
+          >
+            <input {...getInputProps()} />
+            {file ? (
+              <p>Selected File: {file.name}</p>
+            ) : (
+              <p>
+                Drag 'n' drop a .pfx certificate file here, or click to select
+              </p>
+            )}
+          </div>
+          <TextField
+            type="password"
+            label="Cert Password"
+            variant="outlined"
+            fullWidth
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <Button variant="contained" type="submit" fullWidth>
+            Convert to PEM
+          </Button>
+          {loading && <LinearProgress />}
+        </Stack>
+      </form>
+    </Box>
   );
 }
-
-export default App;
