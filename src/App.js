@@ -6,6 +6,8 @@ import { useDropzone } from "react-dropzone";
 import Box from "@mui/material/Box";
 import { saveAs } from 'file-saver';
 import LinearProgress from '@mui/material/LinearProgress';
+import Explanation from './Explanation';
+
 
 
 export default function FileUploadForm() {
@@ -44,9 +46,10 @@ export default function FileUploadForm() {
       justifyContent="center"
       alignItems="center"
       minHeight="100vh"
-    >
+    >      
       <form onSubmit={handleSubmit}>
         <Stack spacing={2} direction="column" sx={{ width: "300px" }}>
+        <Explanation />
           <div
             {...getRootProps()}
             style={{
