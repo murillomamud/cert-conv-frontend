@@ -73,6 +73,8 @@ resource "aws_cloudfront_distribution" "cf_distribution" {
 
     viewer_certificate {
         cloudfront_default_certificate = true
+        acm_certificate_arn = "arn:aws:acm:us-east-1:381150242567:certificate/1cae46ed-3e2a-44e7-a0fd-2bd81a1dbac2"
+        ssl_support_method = "sni-only"
     }
     
   retain_on_delete = true
