@@ -95,7 +95,3 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     cloudfront_default_certificate = true
   }
 }
-
-resource "aws_cloudfront_origin_access_identity" "oai" {
-  comment = "OAI para o site estático"
-}
