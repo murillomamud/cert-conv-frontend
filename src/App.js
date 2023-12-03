@@ -41,14 +41,21 @@ export default function FileUploadForm() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+  
+    if (!file) {
+      setErrorMessage("Please select a file");
+      handleClick();
+      return;
+    }
+  
     setLoading(true);
-
+  
     const formData = new FormData();
     formData.append("file", file);
     formData.append("password", password);
-
+  
     let response;
-
+  
     try {
       response = await fetch("https://pfxtopemapi.mamud.cloud/convert", {
         method: "POST",
@@ -63,7 +70,7 @@ export default function FileUploadForm() {
       setLoading(false);
       return;
     }
-
+  
     if(response.status !== 200) {
       const errorMessage = "Error: " + response.status + " - " + response.statusText;
       setErrorMessage(errorMessage);
@@ -71,7 +78,7 @@ export default function FileUploadForm() {
       setLoading(false);
       return;
     }
-
+  
     const blob = await response.blob();
     saveAs(blob, "certificate.zip");
     setLoading(false);
