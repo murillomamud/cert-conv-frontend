@@ -35,6 +35,10 @@ export default function FileUploadForm() {
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop, maxFiles: 1 });
 
+  const handleRemoveFile = () => {
+    setFile(null);
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -95,7 +99,10 @@ export default function FileUploadForm() {
             >
               <input {...getInputProps()} />
               {file ? (
-                <p>Selected File: {file.name}</p>
+                <p>
+                  Selected File: {file.name} 
+                  <Button onClick={handleRemoveFile} size="small">X</Button>
+                </p>
               ) : (
                 <p>
                   Drag 'n' drop a .pfx certificate file here, or click to select
