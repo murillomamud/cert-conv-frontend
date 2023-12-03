@@ -3,13 +3,12 @@ name: Deploy to AWS
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
-
 
 jobs:
   
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,18 +21,27 @@ jobs:
     - name: Build
       run: npm run build
 
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: build
+        path: build
+
 
   terraform:
     runs-on: [ ubuntu-latest ]
     container:
       image: hashicorp/terraform:latest
-    needs: [build-push-docker-image]
+    needs: [build]
     environment:
       name: production
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name : Download Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+          path: build
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
