@@ -2,20 +2,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-locals {
-  mime_type_mappings = {
-    "css"  = "text/css"
-    "html" = "text/html"
-    "ico"  = "image/vnd.microsoft.icon"
-    "js"   = "application/javascript"
-    "json" = "application/json"
-    "map"  = "application/json"
-    "png"  = "image/png"
-    "svg"  = "image/svg+xml"
-    "txt"  = "text/plain"
-  }
-}
-
 ###########
 # Backend configuration
 ###########
@@ -31,53 +17,6 @@ data "aws_region" "current" {}
 
 data "aws_caller_identity" "current" {}
 
-resource "aws_s3_bucket" "bucket" {
-  bucket = "cert-conv-frontend"
-
-  website {
-    index_document = "index.html"
-    error_document = "error.html"
-  }
-}
-
-###########
-# Upload files to S3
-###########
-resource "aws_s3_bucket_object" "dist" {
-  for_each = fileset("../build/", "**/*")
-
-  bucket = aws_s3_bucket.bucket.id
-  key    = each.value
-  source = "../build/${each.value}"
-  # etag makes the file update when it changes; see https://stackoverflow.com/questions/56107258/terraform-upload-file-to-s3-on-every-apply
-  etag   = filemd5("../build/${each.value}")
-  content_type = lookup(local.mime_type_mappings, concat(regexall("\\.([^\\.]*)$", each.value), [[""]])[0][0], "application/octet-stream")
-}
-
-
-
-resource "aws_s3_bucket_policy" "react_app_bucket_policy" {
-  bucket = aws_s3_bucket.bucket.id
-  policy = <<EOF
-{ 
-    "Version": "2012-10-17", 
-    "Statement": [ 
-        { 
-        "Sid": "PublicReadGetObject", 
-        "Effect": "Allow", 
-        "Action": "s3:*", 
-        "Resource": "arn:aws:s3:::${aws_s3_bucket.bucket.id}/*" 
-        } 
-    ],
-    "Principal": {
-        "type": "AWS"
-        "identifiers" : [
-            "aws_cloudfront_origin_access_identity.oai.iam_arn"
-        ]
-    }
-    }
-EOF
-}
 
 resource "aws_cloudfront_origin_access_identity" "oai" {
   comment = "OAI para o site estático"
