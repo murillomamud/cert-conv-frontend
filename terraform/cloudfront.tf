@@ -10,6 +10,9 @@ resource "aws_cloudfront_origin_access_identity" "oai" {
 resource "aws_cloudfront_distribution" "cf_distribution" {
   comment = "${local.app_name} distribution"
 
+  aliases = [
+    "pfxtopem.mamud.cloud"
+  ]
 
   origin {
     domain_name = aws_s3_bucket.bucket.bucket_regional_domain_name
