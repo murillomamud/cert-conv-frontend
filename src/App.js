@@ -30,7 +30,7 @@ export default function FileUploadForm() {
     formData.append('file', file);
     formData.append('password', password);
   
-    const response = await fetch('https://cert-conv-backend-lob-526233694.us-east-1.elb.amazonaws.com/convert', {
+    const response = await fetch('https://pfxtopemapi.mamud.cloud/convert', {
       method: 'POST',
       body: formData,
     });
