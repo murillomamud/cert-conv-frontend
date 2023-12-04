@@ -9,6 +9,8 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Explanation from "./Explanation";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
+import ServerStatus from './ServerStatus';
+
 
 export default function FileUploadForm() {
   const [file, setFile] = React.useState(null);
@@ -95,6 +97,7 @@ export default function FileUploadForm() {
         <form onSubmit={handleSubmit}>
           <Stack spacing={2} direction="column" sx={{ width: "300px" }}>
             <Explanation />
+            <ServerStatus />
             <div
               {...getRootProps()}
               style={{
